@@ -225,7 +225,6 @@ func (sm *skinManager) GenerateSkin() error {
 			fmt.Println(randomLayer1Part)
 		}
 
-		//TODO: Merge skins to the base
 		fmt.Println("--------------------")
 
 	}
