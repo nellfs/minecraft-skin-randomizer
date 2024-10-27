@@ -221,6 +221,7 @@ func (sm *skinManager) GenerateSkin() error {
 		if len(layer1Files) != 0 {
 			randomIndexLayer1 := r.Intn(len(layer1Files))
 			randomLayer1Part := layer1Files[randomIndexLayer1]
+
 			finalMix = append(finalMix, randomLayer1Part)
 			fmt.Println(randomLayer1Part)
 		}
