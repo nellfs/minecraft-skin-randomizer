@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"image"
+	"image/draw"
+	"image/png"
 	"io"
 	"math/rand"
 	"os"
@@ -162,7 +165,10 @@ func SetupSkinManager() (skinManager skinManager, err error) {
 func (sm *skinManager) GenerateSkin() error {
 	//TODO: change to use only parts in the config
 
+	//Order
 	parts := []SkinPart{sm.BasePart, sm.HeadPart, sm.BodyPart, sm.LeftArmPart, sm.RightArmPart, sm.LeftLegPart, sm.RightLegPart}
+
+	finalMix := []string{}
 
 	for _, part := range parts {
 		dirLayer0 := part.Layer0Path
@@ -183,14 +189,20 @@ func (sm *skinManager) GenerateSkin() error {
 		for _, file := range filesLayer0 {
 			if filepath.Ext(file.Name()) == ".png" {
 				skinPath := dirLayer0 + "/" + file.Name()
-				utils.VerifySkin(skinPath)
+				err = utils.VerifySkin(skinPath)
+				if err != nil {
+					return fmt.Errorf("Layer 0 is in the wrong size: %v (%s)", err, file.Name())
+				}
 				layer0Files = append(layer0Files, skinPath)
 			}
 		}
 		for _, file := range filesLayer1 {
 			if filepath.Ext(file.Name()) == ".png" {
 				skinPath := dirLayer1 + "/" + file.Name()
-				utils.VerifySkin(skinPath)
+				err = utils.VerifySkin(skinPath)
+				if err != nil {
+					return fmt.Errorf("Layer 1 is in the wrong size: %v (%s)", err, file.Name())
+				}
 				layer1Files = append(layer1Files, skinPath)
 			}
 		}
@@ -202,16 +214,49 @@ func (sm *skinManager) GenerateSkin() error {
 		if len(layer0Files) != 0 {
 			randomIndexLayer0 := r.Intn(len(layer0Files))
 			randomLayer0Part := layer0Files[randomIndexLayer0]
+
+			finalMix = append(finalMix, randomLayer0Part)
 			fmt.Println(randomLayer0Part)
 		}
 		if len(layer1Files) != 0 {
 			randomIndexLayer1 := r.Intn(len(layer1Files))
 			randomLayer1Part := layer1Files[randomIndexLayer1]
+			finalMix = append(finalMix, randomLayer1Part)
 			fmt.Println(randomLayer1Part)
 		}
+
 		//TODO: Merge skins to the base
 		fmt.Println("--------------------")
 
+	}
+
+	skin, err := utils.LoadImage(finalMix[0]) // -> base skin layer 0
+	if err != nil {
+		return fmt.Errorf("Error loading base skin image: %v\n", err)
+	}
+
+	for _, layerPath := range finalMix {
+		currentSkinPart, err := utils.LoadImage(layerPath)
+		if err != nil {
+			return err
+		}
+
+		tempImage := image.NewRGBA(skin.Bounds())
+		draw.Draw(tempImage, skin.Bounds(), skin, image.Point{}, draw.Over)
+		draw.Draw(tempImage, currentSkinPart.Bounds().Add(image.Point{0, 0}), currentSkinPart, image.Point{}, draw.Over)
+
+		skin = tempImage
+	}
+
+	outputFile, err := os.Create(sm.Config.EditableSkin)
+	if err != nil {
+		return fmt.Errorf("Error creating output file: %v\n", err)
+	}
+	defer outputFile.Close()
+
+	err = png.Encode(outputFile, skin)
+	if err != nil {
+		return fmt.Errorf("Error saving final image: %v\n", err)
 	}
 
 	return nil

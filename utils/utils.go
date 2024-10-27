@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"image"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -33,11 +34,22 @@ func VerifySkin(skinPath string) error {
 	}
 
 	// it's a valid skin
-	if img.Bounds().Dx() <= 64 && img.Bounds().Dy() <= 64 {
-		return fmt.Errorf("Skin is to big")
+
+	if img.Bounds().Dx() != 64 && img.Bounds().Dy() != 64 {
+		return fmt.Errorf("Skin is not 64x64")
 	}
 
 	return nil
+}
+
+func LoadImage(path string) (image.Image, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return png.Decode(file)
 }
 
 // TODO: next
