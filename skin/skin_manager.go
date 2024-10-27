@@ -4,35 +4,43 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"image"
-	"image/color"
 	"image/png"
 	"io"
-	"math/rand"
 	"os"
 	"path/filepath"
-	"time"
 
-	"github.com/nellfs/minecraft-skin-randomizer/configuration"
+	"github.com/nellfs/minecraft-skin-randomizer/config"
 	"github.com/nellfs/minecraft-skin-randomizer/utils"
 )
 
 const (
-	SkinsFolder      = "/skins"
-	BaseSkinFolder   = "/base"
-	HeadSkinFolder   = "/head"
+	SkinsFolder = "/skins"
+
 	Layer0SkinFolder = "layer_0"
 	Layer1SkinFolder = "layer_1"
 
-	Version           = "0.0.1"
-	ConfigurationFile = "config.json"
+	BaseSkinFolder     = "/base"
+	HeadSkinFolder     = "/head"
+	BodySkinFolder     = "/body"
+	LeftArmSkinFolder  = "/left_arm"
+	RightArmSkinFolder = "/righ_arm"
+	LeftLegSkinFolder  = "/left_leg"
+	RightLegSkinFolder = "/right_leg"
 )
 
 type skinManager struct {
+	Config config.ConfigFile
+
 	RandomizerFolderPath string
 	SkinPath             string
-	BasePath             SkinPart
-	HeadPath             SkinPart
+
+	BasePart     SkinPart
+	HeadPart     SkinPart
+	BodyPart     SkinPart
+	LeftArmPart  SkinPart
+	RightArmPart SkinPart
+	LeftLegPart  SkinPart
+	RightLegPart SkinPart
 }
 
 type SkinPart struct {
@@ -42,7 +50,7 @@ type SkinPart struct {
 }
 
 func (sm *skinManager) setupSkinParts() error {
-	necessaryParts := []*SkinPart{&sm.BasePath, &sm.HeadPath}
+	necessaryParts := []*SkinPart{&sm.BasePart, &sm.HeadPart, &sm.BodyPart, &sm.LeftArmPart, &sm.RightArmPart, &sm.LeftLegPart, &sm.RightLegPart}
 
 	for _, part := range necessaryParts {
 		part.Layer0Path = fmt.Sprintf("%s/%s", part.RootPath, Layer0SkinFolder)
@@ -73,7 +81,89 @@ func (sm *skinManager) setupSkinParts() error {
 	return nil
 }
 
+func SetupSkinManager() (skinManager skinManager, err error) {
+	// the most important thing is the config file,
+	// add flag to config file json
+	// - stop asking for configuration via user input?
+
+	// if config file does not exist users can generate one
+	// just use the flags and it will generate the config filepath
+	//
+	// flags:
+	// config, skin-dir, randomize-dir => skinDir and randomizeDir you can create a config folder
+	// if the config is set you can overwrite it with skindir and randomizerDir, this should
+	// save the new configuration in the config file
+	//
+	// recolor generation configs are experimental, so I will not add flags for it for now
+
+	configFlag := flag.String("config", "", "JSON Config file path")
+	flag.Parse()
+
+	if configFlag == nil || *configFlag == "" {
+		return skinManager, fmt.Errorf("The config file is not set, create one with skin-dir and randomize-dir flags")
+	}
+
+	configPath, err := utils.FormatPath(*configFlag)
+	if err != nil {
+		return skinManager, err
+	}
+
+	file, err := os.Open(configPath)
+	if err != nil {
+		return skinManager, err
+	}
+
+	defer file.Close()
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return skinManager, err
+	}
+
+	err = json.Unmarshal(bytes, &skinManager.Config)
+	if err != nil {
+		return skinManager, fmt.Errorf("Your config file is not correct.")
+	}
+
+	if skinManager.Config.RandomizerFolder == "" {
+		return skinManager, fmt.Errorf("Randomizer folder path is missing.")
+	}
+
+	if skinManager.Config.EditableSkin == "" {
+		return skinManager, fmt.Errorf("Editable skin path is missing.")
+	}
+
+	skinManager.RandomizerFolderPath, err = utils.FormatPath(skinManager.Config.RandomizerFolder)
+	if err != nil {
+		return skinManager, err
+	}
+
+	skinManager.SkinPath, err = utils.FormatPath(skinManager.Config.EditableSkin)
+	if err != nil {
+		return skinManager, err
+	}
+
+	skinManager.BasePart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, BaseSkinFolder)
+	skinManager.HeadPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, HeadSkinFolder)
+	skinManager.BodyPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, BodySkinFolder)
+	skinManager.LeftArmPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, LeftArmSkinFolder)
+	skinManager.RightArmPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, RightArmSkinFolder)
+	skinManager.LeftLegPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, LeftLegSkinFolder)
+	skinManager.RightLegPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, RightLegSkinFolder)
+
+	err = skinManager.setupSkinParts()
+	if err != nil {
+		return skinManager, err
+	}
+
+	return skinManager, nil
+}
+
 func (sm *skinManager) GenerateSkin() error {
+	// TODO: configure
+	//
+	// layers
+	sm.Config.ConfigVersion
+
 	dir := sm.BasePath.Layer0Path
 
 	fmt.Println(sm.BasePath.Layer0Path)
@@ -110,128 +200,5 @@ func (sm *skinManager) GenerateSkin() error {
 		return fmt.Errorf("No PNG files in the BasePath directory\n")
 	}
 
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	selectedFile := pngFiles[rng.Intn(len(pngFiles))]
-
-	inputFile, err := os.Open(selectedFile)
-	if err != nil {
-		panic(err)
-	}
-	defer inputFile.Close()
-
-	img, err := png.Decode(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	bounds := img.Bounds()
-	newImg := image.NewRGBA(bounds)
-
-	// Define a color transformation (example: grayscale)
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			oldColor := img.At(x, y)
-			r, g, b, a := oldColor.RGBA()
-
-			// Convert to grayscale
-			gray := (r + g + b) / 3
-			newColor := color.RGBA{
-				R: uint8(gray >> 8),
-				G: uint8(gray >> 8),
-				B: uint8(gray >> 8),
-				A: uint8(a >> 8),
-			}
-
-			newImg.Set(x, y, newColor)
-		}
-	}
-
-	outputFile, err := os.Create("recolored_image.png")
-	if err != nil {
-		panic(err)
-	}
-	defer outputFile.Close()
-
-	if err := png.Encode(outputFile, newImg); err != nil {
-		panic(err)
-	}
-
 	return nil
-}
-
-func SetupSkinManager() (skinManager skinManager, err error) {
-	// the most important thing is the config file,
-	// add flag to config file json
-	// - stop asking for configuration via user input?
-
-	// if config file does not exist users can generate one
-	// just use the flags and it will generate the config filepath
-	//
-	// flags:
-	// config, skin-dir, randomize-dir => skinDir and randomizeDir you can create a config folder
-	// if the config is set you can overwrite it with skindir and randomizerDir, this should
-	// save the new configuration in the config file
-	//
-	// recolor generation configs are experimental, so I will not add flags for it for now
-
-	config := flag.String("config", "", "JSON Config file path")
-	flag.Parse()
-
-	if config == nil || *config == "" {
-		return skinManager, fmt.Errorf("The config file is not set, create one with skin-dir and randomize-dir flags")
-	}
-
-	configPath, err := utils.FormatPath(*config)
-	if err != nil {
-		return skinManager, err
-	}
-
-	file, err := os.Open(configPath)
-	if err != nil {
-		return skinManager, err
-	}
-
-	defer file.Close()
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return skinManager, err
-	}
-
-	var configFile configuration.ConfigFile
-
-	err = json.Unmarshal(bytes, &configFile)
-	if err != nil {
-		return skinManager, fmt.Errorf("Your config file is not correct.")
-	}
-
-	if configFile.RandomizerFolder == "" {
-		return skinManager, fmt.Errorf("Randomizer folder path is missing.")
-	}
-
-	if configFile.EditableSkin == "" {
-		return skinManager, fmt.Errorf("Editable skin path is missing.")
-	}
-
-	skinManager.RandomizerFolderPath = configFile.RandomizerFolder
-	skinManager.SkinPath = configFile.EditableSkin
-
-	skinManager.RandomizerFolderPath, err = utils.FormatPath(skinManager.RandomizerFolderPath)
-	if err != nil {
-		return skinManager, err
-	}
-
-	skinManager.SkinPath, err = utils.FormatPath(skinManager.SkinPath)
-	if err != nil {
-		return skinManager, err
-	}
-
-	skinManager.BasePath.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, BaseSkinFolder)
-	skinManager.HeadPath.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, HeadSkinFolder)
-
-	err = skinManager.setupSkinParts()
-	if err != nil {
-		fmt.Println("error", err)
-	}
-
-	return skinManager, nil
 }

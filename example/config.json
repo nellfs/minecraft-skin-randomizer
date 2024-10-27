@@ -1,5 +1,36 @@
 {
-  "edit_skin": "/home/nellfs/work/minecraft-skin-randomizer/skin.png",
-  "randomizer_folder": "/home/nellfs/work/minecraft-skin-randomizer/example",
-  "version": "0.0.1"
+    "version": "0.0.1",
+    "edit_skin": "/home/nellfs/work/minecraft-skin-randomizer/skin.png",
+    "randomizer_folder": "/home/nellfs/work/minecraft-skin-randomizer/example",
+    "last_generation": "2024-10-27T12:00:00Z",
+    "gen_config": {
+        "base": {
+            "layer_0": true,
+            "layer_1": true
+        },
+        "head": {
+            "layer_0": true,
+            "layer_1": true
+        },
+        "body": {
+            "layer_0": true,
+            "layer_1": true
+        },
+        "left_arm": {
+            "layer_0": true,
+            "layer_1": true
+        },
+        "right_arm": {
+            "layer_0": true,
+            "layer_1": true
+        },
+        "left_leg": {
+            "layer_0": true,
+            "layer_1": true
+        },
+        "right_leg": {
+            "layer_0": true,
+            "layer_1": true
+        }
+    }
 }
