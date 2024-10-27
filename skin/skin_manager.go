@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"image/png"
 	"io"
 	"os"
 	"path/filepath"
@@ -159,45 +158,50 @@ func SetupSkinManager() (skinManager skinManager, err error) {
 }
 
 func (sm *skinManager) GenerateSkin() error {
-	// TODO: configure
-	//
-	// layers
-	sm.Config.ConfigVersion
+	// genConfig := sm.Config.GenerationConfig
+	// partsConfig := []config.PartConfig{genConfig.BaseGenConfig, genConfig.HeadGenConfig, genConfig.BodyGenConfig,
+	// 	genConfig.LeftArmGenConfig, genConfig.RightArmGenConfig, genConfig.LeftLegGenConfig, genConfig.RightLegGenConfig}
 
-	dir := sm.BasePath.Layer0Path
+	parts := []SkinPart{sm.BasePart, sm.HeadPart, sm.BodyPart, sm.LeftArmPart, sm.RightArmPart, sm.LeftLegPart, sm.RightLegPart}
 
-	fmt.Println(sm.BasePath.Layer0Path)
+	for _, part := range parts {
+		dirLayer0 := part.Layer0Path
+		dirLayer1 := part.Layer1Path
 
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return err
-	}
+		filesLayer0, err := os.ReadDir(dirLayer0)
+		if err != nil {
+			return err
+		}
+		filesLayer1, err := os.ReadDir(dirLayer1)
+		if err != nil {
+			return err
+		}
 
-	var pngFiles []string
-	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".png" {
+		var layer0Files []string
+		var layer1Files []string
 
-			filePath := dir + "/" + file.Name()
-			inputFile, err := os.Open(filePath)
-			if err != nil {
-				continue
-			}
-
-			img, err := png.Decode(inputFile)
-			inputFile.Close()
-			if err != nil {
-				continue
-			}
-
-			// it's a valid skin
-			if img.Bounds().Dx() <= 64 && img.Bounds().Dy() <= 64 {
-				pngFiles = append(pngFiles, filePath)
+		for _, file := range filesLayer0 {
+			if filepath.Ext(file.Name()) == ".png" {
+				skinPath := dirLayer0 + "/" + file.Name()
+				utils.VerifySkin(skinPath)
+				layer0Files = append(layer0Files, skinPath)
 			}
 		}
-	}
+		for _, file := range filesLayer1 {
+			if filepath.Ext(file.Name()) == ".png" {
+				skinPath := dirLayer1 + "/" + file.Name()
+				utils.VerifySkin(skinPath)
+				layer1Files = append(layer1Files, skinPath)
+			}
+		}
 
-	if len(pngFiles) == 0 {
-		return fmt.Errorf("No PNG files in the BasePath directory\n")
+		if len(layer0Files) == 0 {
+			return fmt.Errorf("No PNG files for layer 0 directory: %s \n. Add a skin or edit your config.json", part.Layer0Path)
+		}
+		if len(layer1Files) == 0 {
+			return fmt.Errorf("No PNG files for layer 1 directory: %s \n", part.Layer1Path)
+		}
+
 	}
 
 	return nil
