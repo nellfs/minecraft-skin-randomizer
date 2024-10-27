@@ -5,8 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/nellfs/minecraft-skin-randomizer/config"
 	"github.com/nellfs/minecraft-skin-randomizer/utils"
@@ -158,9 +160,7 @@ func SetupSkinManager() (skinManager skinManager, err error) {
 }
 
 func (sm *skinManager) GenerateSkin() error {
-	// genConfig := sm.Config.GenerationConfig
-	// partsConfig := []config.PartConfig{genConfig.BaseGenConfig, genConfig.HeadGenConfig, genConfig.BodyGenConfig,
-	// 	genConfig.LeftArmGenConfig, genConfig.RightArmGenConfig, genConfig.LeftLegGenConfig, genConfig.RightLegGenConfig}
+	//TODO: change to use only parts in the config
 
 	parts := []SkinPart{sm.BasePart, sm.HeadPart, sm.BodyPart, sm.LeftArmPart, sm.RightArmPart, sm.LeftLegPart, sm.RightLegPart}
 
@@ -195,12 +195,22 @@ func (sm *skinManager) GenerateSkin() error {
 			}
 		}
 
-		if len(layer0Files) == 0 {
-			return fmt.Errorf("No PNG files for layer 0 directory: %s \n. Add a skin or edit your config.json", part.Layer0Path)
+		s := rand.NewSource(time.Now().Unix())
+		r := rand.New(s)
+
+		fmt.Println("Mix:")
+		if len(layer0Files) != 0 {
+			randomIndexLayer0 := r.Intn(len(layer0Files))
+			randomLayer0Part := layer0Files[randomIndexLayer0]
+			fmt.Println(randomLayer0Part)
 		}
-		if len(layer1Files) == 0 {
-			return fmt.Errorf("No PNG files for layer 1 directory: %s \n", part.Layer1Path)
+		if len(layer1Files) != 0 {
+			randomIndexLayer1 := r.Intn(len(layer1Files))
+			randomLayer1Part := layer1Files[randomIndexLayer1]
+			fmt.Println(randomLayer1Part)
 		}
+		//TODO: Merge skins to the base
+		fmt.Println("--------------------")
 
 	}
 

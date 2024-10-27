@@ -6,10 +6,11 @@ const (
 )
 
 type ConfigFile struct {
-	ConfigVersion    string           `json:"version"`
-	EditableSkin     string           `json:"edit_skin"`
-	RandomizerFolder string           `json:"randomizer_folder"`
-	LastGeneration   string           `json:"last_generation"`
+	ConfigVersion    string `json:"version"`
+	EditableSkin     string `json:"edit_skin"`
+	RandomizerFolder string `json:"randomizer_folder"`
+	LastGeneration   string `json:"last_generation"`
+	//TODO: implement that
 	GenerationConfig GenerationConfig `json:"gen_config"`
 }
 

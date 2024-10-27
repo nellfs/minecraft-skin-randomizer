@@ -39,3 +39,8 @@ func VerifySkin(skinPath string) error {
 
 	return nil
 }
+
+// TODO: next
+func MergeSkin() {
+
+}
