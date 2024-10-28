@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"log/slog"
+	"log"
 
 	"github.com/nellfs/minecraft-skin-randomizer/skin"
 )
@@ -10,11 +9,11 @@ import (
 func main() {
 	skinManager, err := skin.SetupSkinManager()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Could not set up a new skin manager: %v", err))
+		log.Fatalf("Could not set up a new skin manager: %v", err)
 	}
 
 	err = skinManager.GenerateSkin()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Could not generate a new skin: %v", err))
+		log.Fatalf("Could not generate a new skin: %v", err)
 	}
 }

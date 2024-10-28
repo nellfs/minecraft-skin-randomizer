@@ -104,7 +104,7 @@ func SetupSkinManager() (skinManager skinManager, err error) {
 	flag.Parse()
 
 	if configFlag == nil || *configFlag == "" {
-		return skinManager, fmt.Errorf("The config file is not set, create one with skin-dir and randomize-dir flags")
+		return skinManager, fmt.Errorf("Please specify the directory to your config JSON.")
 	}
 
 	configPath, err := utils.FormatPath(*configFlag)
