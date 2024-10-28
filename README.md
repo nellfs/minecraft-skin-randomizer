@@ -21,7 +21,7 @@ Minecraft Bedrock saves skins locally, so I designed it so that `edit_skin` woul
 The idea is that you select a custom skin in the game and use it to replaced by the generated random skin.
 
 ```
-"randomizer_folder": "/path/example/foder/",
+"randomizer_folder": "/path/example/folder",
 ```
 
 This is the folder used to mix and generate a random skin based on the combination of skins. The more skins you use, the more combinations you'll have. 
