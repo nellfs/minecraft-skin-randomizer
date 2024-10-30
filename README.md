@@ -26,4 +26,4 @@ The idea is that you select a custom skin in the game and use it to replaced by 
 
 This is the folder used to mix and generate a random skin based on the combination of skins. The more skins you use, the more combinations you'll have. 
 You can customize every part of the skin; just place each part in its corresponding folder. 
-Randomizer folder template [HERE](https://github.com/nellfs/minecraft-skin-randomizer/tree/main/example/skins).
+Template [HERE](https://github.com/nellfs/minecraft-skin-randomizer/tree/main/example/skins).
