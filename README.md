@@ -1,3 +1,5 @@
+![Minecraft Skin Randomizer Banner](https://raw.githubusercontent.com/nellfs/minecraft-skin-randomizer/main/banner.png)
+
 # Minecraft Skin Randomizer
 
 This program allows you to mix and match different skin parts to create a new random Minecraft skin.
