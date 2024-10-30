@@ -18,8 +18,6 @@ import (
 )
 
 const (
-	SkinsFolder = "/skins"
-
 	Layer0SkinFolder = "layer_0"
 	Layer1SkinFolder = "layer_1"
 
@@ -104,7 +102,12 @@ func SetupSkinManager() (skinManager skinManager, err error) {
 	flag.Parse()
 
 	if configFlag == nil || *configFlag == "" {
-		return skinManager, fmt.Errorf("Please specify the directory to your config JSON.")
+		fmt.Printf("\n(!) The config flag is empty. Creating new configuration file...\n\n")
+		_, err = config.CreateConfigFile()
+		if err != nil {
+			return skinManager, fmt.Errorf("Config file creation failed: %v\n", err)
+		}
+		os.Exit(0)
 	}
 
 	configPath, err := utils.FormatPath(*configFlag)
@@ -146,13 +149,13 @@ func SetupSkinManager() (skinManager skinManager, err error) {
 		return skinManager, err
 	}
 
-	skinManager.BasePart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, BaseSkinFolder)
-	skinManager.HeadPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, HeadSkinFolder)
-	skinManager.BodyPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, BodySkinFolder)
-	skinManager.LeftArmPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, LeftArmSkinFolder)
-	skinManager.RightArmPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, RightArmSkinFolder)
-	skinManager.LeftLegPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, LeftLegSkinFolder)
-	skinManager.RightLegPart.RootPath = fmt.Sprintf("%s%s%s", skinManager.RandomizerFolderPath, SkinsFolder, RightLegSkinFolder)
+	skinManager.BasePart.RootPath = fmt.Sprintf("%s%s", skinManager.RandomizerFolderPath, BaseSkinFolder)
+	skinManager.HeadPart.RootPath = fmt.Sprintf("%s%s", skinManager.RandomizerFolderPath, HeadSkinFolder)
+	skinManager.BodyPart.RootPath = fmt.Sprintf("%s%s", skinManager.RandomizerFolderPath, BodySkinFolder)
+	skinManager.LeftArmPart.RootPath = fmt.Sprintf("%s%s", skinManager.RandomizerFolderPath, LeftArmSkinFolder)
+	skinManager.RightArmPart.RootPath = fmt.Sprintf("%s%s", skinManager.RandomizerFolderPath, RightArmSkinFolder)
+	skinManager.LeftLegPart.RootPath = fmt.Sprintf("%s%s", skinManager.RandomizerFolderPath, LeftLegSkinFolder)
+	skinManager.RightLegPart.RootPath = fmt.Sprintf("%s%s", skinManager.RandomizerFolderPath, RightLegSkinFolder)
 
 	err = skinManager.setupSkinParts()
 	if err != nil {
